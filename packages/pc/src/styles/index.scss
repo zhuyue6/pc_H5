@@ -1,0 +1,26 @@
+@use "./font.scss";
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+$rootFontSize: 12px;
+$titleFontSize: 16px;
+$primaryColor: #006FE6;
+
+:root {
+  font-size: $rootFontSize;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+div {
+  box-sizing: border-box;
+}

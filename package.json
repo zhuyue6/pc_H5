@@ -1,0 +1,39 @@
+{
+  "name": "gather-upstairs",
+  "version": "1.0.0",
+  "description": "集聚上楼项目，主要是一些表单类的审核，包含pc和h5端",
+  "lint-staged": {
+    "*.{ts,tsx,js,vue}": [
+      "prettier --write"
+    ],
+    "*.{json,css,less}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "lint-staged": "^13.0.3",
+    "husky": "^8.0.1",
+    "pnpm": "^7.27.1",
+    "prettier": "^2.7.1"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "dev": "pnpm --filter pc dev",
+    "dev:h5": "pnpm --filter h5 dev",
+    "dev:mock": "pnpm --filter pc dev:mock",
+    "dev:h5:mock": "pnpm --filter h5 dev:mock",
+    "build": "pnpm --filter pc build",
+    "build:h5": "pnpm --filter h5 build",
+    "lint-staged": "lint-staged --quiet"
+  },
+  "engines": {
+    "node": ">=14",
+    "pnpm": ">=7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+http://gitlab.anchumall.com/changshan/changshan-expropriation-admin.git"
+  },
+  "author": "zhuyue",
+  "license": "ISC"
+}

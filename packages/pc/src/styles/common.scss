@@ -1,0 +1,24 @@
+@mixin flex($justify-content: center, $align-items: center, $flex-direction: row) {
+  display: flex;
+  justify-content: $justify-content;
+  align-items: $align-items;
+  flex-direction: $flex-direction;
+}
+
+@mixin overflowEllipsis {
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@mixin overflowTextMore($line:2){
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  -webkit-line-clamp: $line; 
+  display: -webkit-box; 
+  -webkit-box-orient: vertical;
+}
+
+@function backgroundFill($url) {
+  @return url(#{$url}) 0 0/100% 100% no-repeat
+}

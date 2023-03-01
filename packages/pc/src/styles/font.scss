@@ -1,0 +1,25 @@
+@font-face {
+  font-family: "iconfont";
+  src: url('@/static/fonts/iconfont.ttf?t=1677223223342') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 14px;
+  font-weight: 500;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-touxiang:before {
+  content: "\e600";
+}
+
+.icon-yanzhengyanzhengma:before {
+  content: "\e624";
+}
+
+.icon-yanzhengma:before {
+  content: "\e72a";
+}
