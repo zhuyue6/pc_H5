@@ -39,11 +39,11 @@ export function setStorage(key: string, value: any): void {
 }
 
 export function getStorage(key: string): any {
-  let data = "";
+  let data = null;
   try {
     data = JSON.parse(localStorage.getItem(key) as string);
   } catch {
-    data = "";
+    data = null;
   }
   return data;
 }
@@ -108,6 +108,10 @@ export function throttle(fn: () => void, time = 200) {
   }, time);
 }
 
+export function simpleDeepCopy(data: any) {
+  return JSON.parse(JSON.stringify(data));
+}
+
 export interface FormatRegion {
   id: string | number; // id
   level: number; // 级别: 1省|2市|3区县|4街道/乡镇|5村
@@ -160,6 +164,18 @@ export function getAreasInfo(
   return list;
 }
 
+export function getUserInfoAreasText(userInfo: UserInfo): string {
+  let text = "";
+  if (userInfo?.level <= 3) {
+    text = userInfo.areaChina;
+  } else if (userInfo?.level === 4) {
+    text = userInfo.townChina;
+  } else if (userInfo?.level === 5) {
+    text = userInfo.villageChina;
+  }
+  return text;
+}
+
 export function getUserIdentity(): number {
   // 1省|2市|3区县|4街道/乡镇|5村
   const userInfo = getUserInfo();
@@ -199,9 +215,9 @@ export function isUserDisabled(role: number) {
 }
 
 export function getUserInfo(): UserInfo {
-  return getStorage("userInfo");
+  return getStorage("userInfo") ?? {};
 }
 
 export function getToken() {
-  return getStorage("token");
+  return getStorage("token") ?? "";
 }

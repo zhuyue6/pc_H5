@@ -1,7 +1,7 @@
 {
   "name": "h5",
   "version": "1.0.0",
-  "description": "集聚上楼项目h5，主要是一些信息的公示",
+  "description": "h5，主要是一些信息的公示",
   "dependencies": {
     "axios": "^1.2.1",
     "pinia": "^2.0.21",
@@ -29,10 +29,6 @@
     "dev": "vite",
     "dev:mock": "vite -m mock",
     "build": "vite build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+http://gitlab.anchumall.com/changshan/changshan-expropriation-admin.git"
   },
   "author": "zhuyue",
   "license": "ISC"

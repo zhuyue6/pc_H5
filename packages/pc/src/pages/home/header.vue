@@ -2,15 +2,22 @@
   <div class="container">
     <div class="logo">
       <div class="icon logo-icon"></div>
-      <h3 class="logo-title">集聚上楼申请管理云平台</h3>
+      <h3 class="logo-title">管理平台</h3>
     </div>
     <div class="user-container">
       <div class="icon">
         <userIcon class="user-icon" />
       </div>
       <div class="user-info">
-        <span>{{ userInfo?.username }}</span>
-        <span class="user-text">{{ userInfo?.areaChina }}</span>
+        <span>{{ state.userInfo?.username }}</span>
+        <el-tooltip
+          placement="top"
+          effect="dark"
+          :hide-after="0"
+          :content="userAreaText"
+        >
+          <span class="user-text">{{ userAreaText }}</span>
+        </el-tooltip>
       </div>
       <el-dropdown>
         <el-icon class="user-info-dropdown" color="#fff">
@@ -30,12 +37,31 @@
 import { CaretBottom } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 import userIcon from "@/components/icons/user.vue";
-import { loginOut } from "@/services/login";
+import { reactive, onMounted, computed } from "vue";
+import { loginOut, type UserInfo } from "@/services/login";
 import { util } from "@/shared";
 
-const userInfo = util.getUserInfo();
+interface State {
+  userInfo: UserInfo | null;
+}
+
+const state: State = reactive({
+  userInfo: null,
+});
+
+const userAreaText = computed(() => {
+  return (
+    (state.userInfo?.areaChina ?? "") +
+    (state.userInfo?.townChina ?? "") +
+    (state.userInfo?.villageChina ?? "")
+  );
+});
 
 const router = useRouter();
+
+onMounted(() => {
+  state.userInfo = util.getUserInfo();
+});
 function doLoginOut() {
   loginOut().then(() => {
     router.push({
@@ -64,7 +90,7 @@ function doLoginOut() {
       color: #fff;
     }
     &.logo-icon {
-      background-color: #fff;
+      background-size: 100% 100%;
     }
   }
   .logo {
@@ -92,7 +118,7 @@ function doLoginOut() {
       line-height: 20px;
       margin-right: 6px;
       .user-text {
-        max-width: 106px;
+        max-width: 300px;
         @include common.overflowEllipsis;
       }
     }

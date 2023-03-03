@@ -10,5 +10,5 @@ export interface Region {
 }
 
 export function getRegions() {
-  return get<Region[]>("/region/child");
+  return get<Region[]>("/api/region/child");
 }

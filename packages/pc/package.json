@@ -1,7 +1,7 @@
 {
   "name": "pc",
   "version": "1.0.0",
-  "description": "集聚上楼项目pc，主要是一些表单类的审核",
+  "description": "pc，主要是一些表单类的审核",
   "dependencies": {
     "@element-plus/icons-vue": "^2.0.10",
     "axios": "^1.2.1",
@@ -29,10 +29,6 @@
     "dev": "vite",
     "dev:mock": "vite -m mock",
     "build": "vite build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+http://gitlab.anchumall.com/changshan/changshan-expropriation-admin.git"
   },
   "author": "zhuyue",
   "license": "ISC"

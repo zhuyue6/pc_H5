@@ -4,6 +4,6 @@ const commonStore = useCommonStore();
 /***
  * 进入一次性获取的数据信息
  */
-export function requests() {
-  commonStore.getRegions();
+export async function requests() {
+  await commonStore.getRegions();
 }

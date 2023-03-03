@@ -26,7 +26,7 @@ export interface HouseInfo {
 
 export interface ApplyData {
   id?: string;
-  status: string; // 状态 10待提交、20审核中、30已通过、40已驳回）
+  status?: string; // 状态 10待提交、20审核中、30已通过、40已驳回）
   name: string;
   idNo: string;
   mobile: string;
@@ -48,16 +48,16 @@ export interface ApplyData {
 }
 
 export interface ApprovalBase {
-  approvalApplyId: string;
+  approvalApplyId: string | number;
 }
 
 interface AduitList extends ApprovalBase {
   type: string | number; // 1 查询全部 , 2 查询最新 ，3 查询 驳回的
 }
 // 审核
-interface AduitData extends ApprovalBase {
+export interface AduitData extends ApprovalBase {
   reason?: string;
-  status: number;
+  status: number | string;
 }
 
 interface QueryList {
@@ -98,6 +98,11 @@ export function getApprovalApplyEditList(data: ApprovalBase) {
 // 审批
 export function auditApply(data: AduitData) {
   return post("approval/apply/audit", data);
+}
+
+// 查看审核信息(状态、原因)
+export function getUserAduitStatus(data: ApprovalBase) {
+  return get("approval/apply/getApprovalApplyDetailInfo", data);
 }
 
 // 村务员 提交审核表

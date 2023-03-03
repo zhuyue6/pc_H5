@@ -9,9 +9,11 @@
         <div class="child-page">
           <router-view v-slot="{ Component }">
             <keep-alive v-if="$route.meta.keepAlive">
-              <component :is="Component" :key="$route.name" />
+              <component :is="Component" :key="$route.name" v-if="!loading" />
             </keep-alive>
-            <component v-else :is="Component" :key="$route.name" />
+            <template v-else>
+              <component :is="Component" :key="$route.name" v-if="!loading" />
+            </template>
           </router-view>
         </div>
       </el-main>
@@ -23,13 +25,18 @@
 import cHeader from "./header.vue";
 import cNavigator from "./navigator.vue";
 import { util } from "@/shared";
-import { ref, onMounted } from "vue";
+import { shallowRef, onMounted } from "vue";
 import { requests } from "@/services/home";
-const hiddenHeader = ref<boolean>(true);
+const hiddenHeader = shallowRef<boolean>(true);
 
+let loading = shallowRef(true);
 onMounted(() => {
   hiddenHeader.value = util.getUrlQuery("hiddenModules") !== "header";
-  requests();
+
+  // 所有前置请求结束后再渲染数据
+  requests().finally(() => {
+    loading.value = false;
+  });
 });
 </script>
 <style lang="scss" scoped>

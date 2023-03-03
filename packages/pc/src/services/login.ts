@@ -21,6 +21,8 @@ export interface UserInfo {
   villageCode: string; // 村code
   userId: number; // 用户id
   username: string; // 用户姓名
+  villageChina: string; // 村负责人
+  townChina: string; // 乡镇负责人
   areaChina: string; //区县中文名
   zjdAccount: number; // 浙政钉账号
 }

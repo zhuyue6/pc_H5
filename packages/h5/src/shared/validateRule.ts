@@ -9,7 +9,7 @@ const phone = {
   message: "请正确输入手机号",
 };
 
-const verificationCodeReg = /[0-9]{6}$/;
+const verificationCodeReg = /[0-9]{4}$/;
 const verificationCode = {
   validator(value: string) {
     return verificationCodeReg.test(value);

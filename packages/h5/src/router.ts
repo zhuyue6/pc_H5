@@ -13,12 +13,14 @@ interface RouteMenu {
 
 const routes: (RouteRecordRaw & RouteMenu)[] = [
   {
+    name: "home",
     path: "/home",
-    component: import("./pages/home/index.vue"),
+    component: () => import("./pages/home/index.vue"),
   },
   {
+    name: "login",
     path: "/login",
-    component: import("./pages/login/index.vue"),
+    component: () => import("./pages/login/index.vue"),
   },
   {
     path: "",

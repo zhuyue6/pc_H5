@@ -7,60 +7,91 @@
       class="demo-form-inline"
       label-width="100"
     >
-      <el-form-item label="姓名" prop="name">
-        <el-input
-          class="long-input"
-          v-model="state.formData.name"
-          placeholder="请输入姓名"
-        />
-      </el-form-item>
-      <el-form-item label="手机号" prop="phone">
-        <el-input
-          class="long-input"
-          v-model="state.formData.phone"
-          placeholder="请输入手机号"
-        />
-      </el-form-item>
-      <el-form-item label="角色" prop="role">
-        <el-select
-          class="long-input"
-          v-model="state.formData.role"
-          placeholder="请选择角色"
-          :disabled="state.isEdit"
-        >
-          <el-option
-            v-for="item in roleList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="负责区域" prop="country">
-        <el-cascader
-          :disabled="state.isEdit"
-          :show-all-levels="false"
-          :props="{
-            checkStrictly: true,
-          }"
-          v-model="state.formData.country"
-          :options="countryOptions"
-        />
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select
-          class="short-input"
-          v-model="state.formData.status"
-          placeholder="请选择状态"
-        >
-          <el-option
-            v-for="item in state.statusList"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
+      <div class="form-item-container">
+        <div class="form-item">
+          <div class="form-item-text"><span class="red-star">*</span>姓名</div>
+          <el-form-item prop="name">
+            <el-input
+              class="long-input"
+              v-model="state.formData.name"
+              placeholder="请输入姓名"
+            />
+          </el-form-item>
+        </div>
+      </div>
+      <div class="form-item-container">
+        <div class="form-item">
+          <div class="form-item-text">
+            <span class="red-star">*</span>手机号
+          </div>
+          <el-form-item prop="phone">
+            <el-input
+              class="long-input"
+              v-model="state.formData.phone"
+              placeholder="请输入手机号"
+            />
+          </el-form-item>
+        </div>
+      </div>
+      <div class="form-item-container">
+        <div class="form-item">
+          <div class="form-item-text"><span class="red-star">*</span>角色</div>
+          <el-form-item prop="role">
+            <el-select
+              class="long-input"
+              v-model="state.formData.role"
+              placeholder="请选择角色"
+              :disabled="state.isEdit"
+            >
+              <el-option
+                v-for="item in roleList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
+      </div>
+      <div class="form-item-container">
+        <div class="form-item">
+          <div class="form-item-text">
+            <span class="red-star">*</span>负责区域
+          </div>
+          <el-form-item prop="country">
+            <div class="long-input">
+              <el-cascader
+                :disabled="state.isEdit"
+                :show-all-levels="false"
+                :props="{
+                  checkStrictly: true,
+                }"
+                v-model="state.formData.country"
+                :options="countryOptions"
+              />
+            </div>
+          </el-form-item>
+        </div>
+      </div>
+      <div class="form-item-container" v-if="isShowEnabled">
+        <div class="form-item">
+          <div class="form-item-text"><span class="red-star">*</span>状态</div>
+          <el-form-item prop="status">
+            <el-select
+              class="short-input"
+              v-model="state.formData.status"
+              placeholder="请选择状态"
+            >
+              <el-option
+                v-for="item in state.statusList"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
+      </div>
     </el-form>
     <div class="button-container">
       <el-button @click="cancel">取消</el-button>
@@ -82,6 +113,8 @@ import {
 import { useCommonStore } from "@/store";
 import { util } from "@/shared";
 import { UserInfo } from "@/services/login";
+import { isAdmin } from "@/services/permission";
+import * as constant from "@/shared/dict/constant";
 
 const router = useRouter();
 const route = useRoute();
@@ -95,7 +128,7 @@ interface State {
   formData: {
     name: string;
     phone: string;
-    country: string[];
+    country: string[] | string;
     role: number | string;
     status: number | string;
   };
@@ -115,7 +148,7 @@ const state: State = reactive({
   formData: {
     name: "",
     phone: "",
-    country: [],
+    country: "",
     role: "",
     status: "",
   },
@@ -124,7 +157,7 @@ const state: State = reactive({
     name: [required],
     phone: [required, phone],
     status: [required],
-    country: [],
+    country: [required],
     role: [required],
   },
 });
@@ -138,17 +171,35 @@ const commonStore = useCommonStore();
 
 const countryOptions = computed(() => {
   const userIdentity = util.getUserIdentity();
-  let disabled = [1, 2, 3];
+  let disabled = [1, 2];
   if (userIdentity === 4) disabled = [1, 2, 3];
   if (userIdentity === 5) disabled = [1, 2, 3, 4];
+  if (isAdmin()) {
+    disabled = [];
+  }
   return util.formatRegion(commonStore.regions, disabled);
 });
 
 const userInfo = util.getUserInfo();
 const roleList = computed(() => {
-  return approverRole.filter((item) => {
-    return item.value < userInfo.approverRole;
-  });
+  let list: any[] = [];
+  // 如果是区县负责人
+  if (isAdmin()) {
+    list = approverRole;
+  } else if (userInfo.approverRole === 60) {
+    list = constant.areaManager;
+  } else if (userInfo.approverRole === 40) {
+    list = constant.townManager;
+  } else if (userInfo.approverRole === 20) {
+    list = constant.villageManager;
+  }
+  return list;
+});
+
+const isShowEnabled = computed(() => {
+  return constant.auditors
+    .map((auditor) => auditor.value)
+    .includes(state.formData.role);
 });
 
 function cancel() {
@@ -157,27 +208,38 @@ function cancel() {
 
 function submit() {
   formRef.value?.validate((valid) => {
+    if (!valid) return;
     if (
-      util.isUserDisabled(state.formData.role as number) &&
-      state.formData.status === 0
+      ([1, 10, 20].includes(state.formData.role) &&
+        state.formData.country.length !== 5) ||
+      ([30, 40].includes(state.formData.role) &&
+        state.formData.country.length !== 4) ||
+      ([50, 60].includes(state.formData.role) &&
+        state.formData.country.length !== 3)
     ) {
       return ElMessage({
-        message: "村务员和各级负责人无法禁用",
+        message: "请正确设置角色以及负责区域",
         type: "warning",
       });
     }
+
     if (valid) {
       const params: Partial<UserInfo> = {
         townCode: state.formData.country[3],
         villageCode: state.formData.country[4],
         areaCode: state.formData.country[2],
         cityCode: state.formData.country[1],
+        level: state.formData.country.length,
         provinceCode: state.formData.country[0],
         mobile: state.formData.phone,
         username: state.formData.name,
         approverRole: state.formData.role as number,
-        status: state.formData.status as number,
+        status: 1,
       };
+
+      if (isShowEnabled.value) {
+        params.status = state.formData.status as number;
+      }
       if (state.isEdit) {
         params.id = state.id;
       }
@@ -219,6 +281,23 @@ onMounted(() => {
   .long-input {
     width: 435px;
   }
+
+  .form-item-container {
+    @include common.flex(flex-start);
+    .form-item {
+      @include common.flex(flex-start, flex-start);
+      .form-item-text {
+        margin-top: 8px;
+        text-align: right;
+        flex-shrink: 0;
+        width: 100px;
+        margin-right: 10px;
+      }
+      .red-star {
+        color: red;
+      }
+    }
+  }
   .short-input {
     width: 168px;
   }
@@ -228,6 +307,9 @@ onMounted(() => {
   ::v-deep {
     .el-cascader {
       width: 100%;
+    }
+    .el-form-item__content {
+      margin-left: 0 !important;
     }
   }
 }

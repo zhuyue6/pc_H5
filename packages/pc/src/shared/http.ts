@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance, type AxiosResponse } from "axios";
-import * as api from "../../api.config";
+import * as api from "../../httpApi.config";
 import { ElMessage } from "element-plus";
 import { getToken } from "@/shared/util";
 import router from "@/router";
@@ -20,7 +20,7 @@ interface ResponseData<T = any> {
 http.interceptors.response.use(
   (response: AxiosResponse<ResponseData>) => {
     if (response.data.code !== 0) {
-      if (response.data.code === 403) {
+      if ([403, 404, 405].includes(response.data.code)) {
         router.push({
           path: "/login",
         });
@@ -34,7 +34,7 @@ http.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response.data.code === 403) {
+    if ([403, 404, 405].includes(error.response.data.code)) {
       ElMessage({
         message: error.response.data.msg,
         type: "error",
@@ -62,12 +62,13 @@ export async function get<T>(
   }
 ): Promise<T> {
   const responseData = await http.get<ResponseData<T>>(
-    url.startsWith("/") ? url : `${api.apiPath}/${url}`,
+    url.startsWith("/") ? url : `${api.proxyPath}${api.apiPath}/${url}`,
     {
       params,
       data,
       headers: {
         Authorization: getToken(),
+        userFrom: "admin",
       },
     }
   );
@@ -82,12 +83,13 @@ export async function post<T>(
   }
 ): Promise<T> {
   const responseData = await http.post<ResponseData<T>>(
-    url.startsWith("/") ? url : `${api.apiPath}/${url}`,
+    url.startsWith("/") ? url : `${api.proxyPath}${api.apiPath}/${url}`,
     data,
     {
       params,
       headers: {
         Authorization: getToken(),
+        userFrom: "admin",
       },
     }
   );

@@ -1,9 +1,11 @@
-import { ref, onMounted, onUnmounted, type Ref } from "vue";
+import { ref, onMounted, onUnmounted, type Ref, nextTick } from "vue";
 
 export function useDomHight(domRef: Ref<HTMLElement>) {
   const height = ref();
   function resize() {
-    height.value = domRef.value?.clientHeight;
+    nextTick(() => {
+      height.value = domRef.value?.clientHeight;
+    });
   }
   onMounted(() => {
     window.addEventListener("resize", resize);

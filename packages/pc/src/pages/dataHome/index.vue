@@ -1,6 +1,8 @@
 <template>
   <div class="data-home-container">
-    <div class="title">常山县</div>
+    <div class="title">
+      {{ getUserInfoAreasText(state.userInfo as UserInfo) }}
+    </div>
     <div class="card-list-cotainer" v-if="isDirector()">
       <div
         :class="['card-item', item.type]"
@@ -13,7 +15,11 @@
     </div>
     <div class="data-home-table">
       <div class="data-home-table-content">
-        <cTable :columns="columns" :fetch-data="fetchData" />
+        <cTable
+          :columns="columns"
+          :fetch-data="fetchData"
+          :pageVisible="false"
+        />
       </div>
     </div>
   </div>
@@ -23,6 +29,8 @@ import { reactive, onMounted } from "vue";
 import { cTable } from "@/components";
 import { getDataboard, dataResponse, getDataList } from "@/services/dataHome";
 import { isDirector } from "@/services/permission";
+import { UserInfo } from "@/services/login";
+import { getUserInfo, getUserInfoAreasText } from "@/shared/util";
 interface State {
   databoard: {
     type: string;
@@ -30,6 +38,7 @@ interface State {
     number: number;
   }[];
   list: dataResponse[];
+  userInfo: UserInfo | null;
 }
 
 const state: State = reactive({
@@ -66,6 +75,7 @@ const state: State = reactive({
     },
   ],
   list: [],
+  userInfo: null,
 });
 
 const columns = [
@@ -128,6 +138,7 @@ async function fetchData() {
 
 onMounted(() => {
   getDataboard().then(setDataboard);
+  state.userInfo = getUserInfo();
 });
 </script>
 <style lang="scss" scoped>

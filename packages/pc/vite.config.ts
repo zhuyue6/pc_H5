@@ -5,7 +5,7 @@ import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import mockDevServerPlugin from "vite-plugin-mock-dev-server";
 import basicSsl from "@vitejs/plugin-basic-ssl";
-import * as api from "./api.config";
+import * as api from "./httpApi.config";
 import url from "node:url";
 import path from "node:path";
 
@@ -22,21 +22,12 @@ const plugins = [
 ];
 if (isMock) plugins.push(mockDevServerPlugin());
 
-const proxy = {
-  [`^${api.apiPath}`]: `https://${api.host}`,
-};
-
-for (const commonPath of api.commonPaths) {
-  proxy[commonPath] = `https://${api.host}`;
-}
-
 export default defineConfig({
   resolve: {
     alias: {
       "@": "/src",
     },
   },
-  mode: 'production',
   css: {
     preprocessorOptions: {
       scss: {
@@ -55,7 +46,13 @@ export default defineConfig({
     port: 8080,
     https: true,
     cors: true,
-    proxy,
+    proxy: {
+      [`^${api.proxyPath}`]: {
+        changeOrigin: true,
+        target: `https://${api.host}`,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
   plugins,
 });

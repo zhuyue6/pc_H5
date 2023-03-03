@@ -5,7 +5,7 @@
         <van-form ref="formRef">
           <div class="input-item">
             <van-field
-              v-model="state.formData.IDNumber"
+              v-model="state.formData.cardId"
               label="身份证号"
               placeholder="请输入身份证号码"
               :rules="[validateRule.required, validateRule.id]"
@@ -46,14 +46,15 @@
 <script setup lang="ts">
 import { reactive, ref, computed } from "vue";
 import * as validateRule from "@/shared/validateRule";
-import { login, getVerificationCode } from "@/services/login";
+import { loginSms, getVerificationCode } from "@/services/login";
+import { useRouter } from "vue-router";
 import pageContainer from "@/components/pageContainer/index.vue";
 import { showToast } from "vant";
 
 interface State {
   countDown: number;
   formData: {
-    IDNumber: string;
+    cardId: string;
     phone: string;
     verificationCode: string;
   };
@@ -61,7 +62,7 @@ interface State {
 const state: State = reactive({
   countDown: 0,
   formData: {
-    IDNumber: "",
+    cardId: "",
     phone: "",
     verificationCode: "",
   },
@@ -73,14 +74,30 @@ const verificationCodeText = computed<null | string | number>(() => {
 
 const formRef = ref(null);
 
+const router = useRouter();
+
 function submit() {
-  const result = formRef.value?.validate().then(() => {
-    login();
+  formRef.value?.validate().then(() => {
+    loginSms({
+      cardId: state.formData.cardId,
+      mobile: state.formData.phone,
+      smsCode: state.formData.verificationCode,
+    }).then(() => {
+      router.push({
+        path: "/home",
+      });
+    });
   });
 }
 
 function verificationCode() {
-  getVerificationCode();
+  if (!state.formData.phone) {
+    return showToast("请输入手机号码");
+  }
+  getVerificationCode({
+    mobile: state.formData.phone,
+    sendScene: "LOGIN",
+  });
   if (state.countDown !== 0) {
     return showToast("验证码60秒只能获取一次，请稍后再试。");
   }

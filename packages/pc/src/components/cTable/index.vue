@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted, type Component } from "vue";
+import { reactive, ref, type Component, watch, onMounted } from "vue";
 import { useDomHight } from "@/shared/hooks";
 import { TableColumnInstance } from "element-plus";
 import textEllipsis from "./textEllipsis.vue";
@@ -79,10 +79,19 @@ const props = withDefaults(defineProps<Props>(), {
   mountedGetData: true,
 });
 
+watch(
+  () => state.pageSize,
+  () => {
+    getData();
+  }
+);
+
 const tableRef = ref<HTMLDivElement | null>(null);
 const tableHeight = useDomHight(tableRef as any);
 
-if (props.mountedGetData) getData();
+onMounted(() => {
+  if (props.mountedGetData) getData();
+});
 
 async function getData() {
   state.loading = true;

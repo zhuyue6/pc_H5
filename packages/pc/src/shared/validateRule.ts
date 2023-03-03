@@ -103,6 +103,24 @@ const checkIDCardRule = {
   },
 };
 
+// 校验数字是否保留2位小数
+const checkValidNumber = (value) => {
+  const arr = (value + "").split(".");
+  let err = "";
+  if (!value) {
+    err = "";
+  } else if (!/^\d+(\.\d+)?$/.test(value)) {
+    err = "请输入大于0的数据";
+  } else if (arr.length > 2) {
+    err = "必须不小于0.01";
+  } else if (arr.length === 2 && arr[1].length > 2) {
+    err = "保留2位小数";
+  } else if (value < 0.01) {
+    err = "必须不小于0.01";
+  }
+  return err;
+};
+
 export {
   required,
   phoneReg,
@@ -111,4 +129,5 @@ export {
   verificationCode,
   checkIDCard,
   checkIDCardRule,
+  checkValidNumber,
 };

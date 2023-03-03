@@ -11,6 +11,7 @@ interface AccountParams {
   villageCode?: string; // 村code
   provinceCode?: string; // 省code
   cityCode?: string; // 市code
+  approverRoles?: []; // 角色列表
 }
 
 export interface AccountResponse {

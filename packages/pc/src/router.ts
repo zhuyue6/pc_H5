@@ -4,82 +4,43 @@ import {
   type RouteRecordRaw,
   type NavigationGuardNext,
 } from "vue-router";
-import type { Component } from "vue";
+import { type Component, ref } from "vue";
+import { simpleDeepCopy } from "@/shared/util";
 import { getPermission } from "@/services/permission";
-import { DataLine, Collection } from "@element-plus/icons-vue";
 interface RouteMenu {
   title?: string;
   icon?: Component;
   key?: string | number;
   isNavigator?: boolean;
-  children?: (RouteRecordRaw & RouteMenu)[];
+  children?: IRouter[];
 }
 
 export type IRouter = RouteRecordRaw & RouteMenu;
-const routes: IRouter[] = [
+
+const routesInit = [
   {
     path: "/home",
     name: "home",
-    component: import("./pages/home/index.vue"),
+    component: () => import("./pages/home/index.vue"),
     children: [
       {
         path: "",
         title: "数据首页",
         name: "dataHome",
         isNavigator: true,
-        component: import("./pages/dataHome/index.vue"),
-      },
-      {
-        path: "applicationList",
-        title: "数据列表",
-        isNavigator: true,
-        component: import("./pages/application/listIndex.vue"),
-        children: [
-          {
-            title: "全部",
-            isNavigator: true,
-            key: "0",
-            path: "",
-            component: import("./pages/application/list.vue"),
-          },
-          {
-            title: "待提交",
-            isNavigator: true,
-            key: "0",
-            path: "submit",
-            component: import("./pages/application/list.vue"),
-          },
-          {
-            title: "审核中",
-            isNavigator: true,
-            key: "1",
-            path: "verify",
-            component: import("./pages/application/list.vue"),
-          },
-          {
-            title: "已退回",
-            isNavigator: true,
-            key: "2",
-            path: "return",
-            component: import("./pages/application/list.vue"),
-          },
-        ],
-      },
-      {
-        path: "applicationApply/:type",
-        component: import("./pages/application/apply.vue"),
+        component: () => import("./pages/dataHome/index.vue"),
       },
       {
         name: "directorManage",
-        title: "负责人管理",
+        title: "人员管理",
         path: "directorManage",
         isNavigator: true,
-        component: import("./pages/directorManage/index.vue"),
+        component: () => import("./pages/directorManage/index.vue"),
       },
       {
         name: "directorManageInfo",
         path: "directorManageInfo",
-        component: import("./pages/directorManage/info.vue"),
+        component: () => import("./pages/directorManage/info.vue"),
       },
       {
         path: ":path",
@@ -89,7 +50,7 @@ const routes: IRouter[] = [
   },
   {
     path: "/login",
-    component: import("./pages/login/index.vue"),
+    component: () => import("./pages/login/index.vue"),
   },
   {
     path: "",
@@ -101,38 +62,56 @@ const routes: IRouter[] = [
   },
 ];
 
+const routes = ref<IRouter[]>(routesInit);
+
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes: routes.value,
 });
 
-function directorGuard(
-  state: GuardState,
-  permission: number[],
-  next: NavigationGuardNext
-): GuardState {
-  if (
-    !permission.includes(2) &&
-    ["directorManage", "directorManageInfo", "dataHome"].includes(state.name)
-  ) {
-    state.next = true;
-    state.nextFn = () =>
-      next({
-        path: "/home/applicationList",
-      });
+function directorGuard(state: GuardState, permission: number[]): GuardState {
+  if (permission.includes(2)) {
+    state.addRouters = pushRouters(
+      [
+        { name: "directorManageInfo" },
+        { name: "directorManage" },
+        { name: "dataHome" },
+      ],
+      state.addRouters
+    );
+  } else {
+    state.deleteRouters = pushRouters(
+      [
+        { name: "directorManageInfo" },
+        { name: "directorManage" },
+        { name: "dataHome" },
+      ],
+      state.deleteRouters
+    );
   }
   return state;
 }
 
 function adminGuard(state: GuardState, permission: number[]): GuardState {
-  if (permission.includes(1)) state.next = true;
+  if (permission.includes(1)) {
+    state.addRouters = pushRouters(
+      [{ name: "directorManageInfo" }, { name: "directorManage" }],
+      state.addRouters
+    );
+  } else {
+    state.deleteRouters = pushRouters(
+      [{ name: "directorManageInfo" }, { name: "directorManage" }],
+      state.deleteRouters
+    );
+  }
   return state;
 }
 interface GuardState {
   name: string;
   next: boolean;
   path?: string;
-  nextFn: () => void;
+  addRouters: any[];
+  deleteRouters: any[];
 }
 
 router.beforeEach(async (to, from, next) => {
@@ -140,13 +119,101 @@ router.beforeEach(async (to, from, next) => {
     name: to.name as string,
     next: false,
     path: to.path,
-    nextFn: next,
+    addRouters: [],
+    deleteRouters: [],
   };
   const permission = getPermission();
-  if (adminGuard(state, permission).next) return state.nextFn();
-  if (directorGuard(state, permission, next).next) return state.nextFn();
-  next();
+  adminGuard(state, permission);
+  directorGuard(state, permission);
+  guardNext(state, next);
 });
+
+function guardNext(state: GuardState, next: NavigationGuardNext) {
+  const deleteList = state.deleteRouters.filter((deleteRouter) => {
+    return (
+      -1 ===
+      state.addRouters.findIndex((addRouter) => {
+        let filter = false;
+        if (
+          (deleteRouter.name && deleteRouter.name === addRouter.name) ||
+          (deleteRouter.path && deleteRouter.path === addRouter.path)
+        ) {
+          filter = true;
+        }
+        return filter;
+      })
+    );
+  });
+  deletesRoutes(deleteList);
+  if (deleteList.length > 0) {
+    if (
+      deleteList.find((item) => {
+        let filter = false;
+        if (
+          (item.name && item.name === state.name) ||
+          (item.path && item.path === state.path)
+        ) {
+          filter = true;
+        }
+        return filter;
+      })
+    ) {
+      return next({
+        path: "/home/applicationList/verify",
+      });
+    }
+  }
+  next();
+}
+
+function pushRouters(
+  oRouters: Partial<IRouter>[],
+  iRouters: Partial<IRouter>[]
+) {
+  const list = [];
+  for (const oRouter of oRouters) {
+    const has = iRouters.find((iRouter) => {
+      let filter = false;
+      if (
+        (oRouter.name && oRouter.name === iRouter.name) ||
+        (oRouter.path && oRouter.path === iRouter.path)
+      ) {
+        filter = true;
+      }
+      return filter;
+    });
+    if (!has) {
+      list.push(oRouter);
+    }
+  }
+  return list.concat(iRouters);
+}
+
+function deletesRoutes(dRouters: Partial<RouteRecordRaw>[]) {
+  let newRoutes = simpleDeepCopy(routesInit);
+  for (const dRouter of dRouters) {
+    newRoutes = deleteRoute(dRouter, newRoutes);
+  }
+  routes.value = newRoutes;
+}
+
+function deleteRoute(dRouter: Partial<RouteRecordRaw>, iRouters: IRouter[]) {
+  const routers: IRouter[] = iRouters;
+  const newRoutes = routers.filter((router) => {
+    if ((router.children?.length ?? []) > 0) {
+      router.children = deleteRoute(dRouter, router.children as IRouter[]);
+    }
+    let filter = true;
+    if (
+      (dRouter.name && dRouter.name === router.name) ||
+      (dRouter.path && dRouter.path === router.path)
+    ) {
+      filter = false;
+    }
+    return filter;
+  });
+  return newRoutes;
+}
 
 export { routes };
 

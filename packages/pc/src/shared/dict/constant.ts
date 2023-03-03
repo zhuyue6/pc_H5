@@ -82,9 +82,9 @@ export const houseStructureRate: Options[] = [
 
 // 集聚安置方式
 export const placementMode: Options[] = [
-  { label: "购买新建商品住宅", value: "购买新建商品住宅" },
-  { label: "购买存量商品住宅", value: "购买存量商品住宅" },
-  { label: "租赁村集体公寓", value: "租赁村集体公寓" },
+  { label: "购买城区新建商品住宅", value: "购买城区新建商品住宅" },
+  { label: "购买城区存量商品住宅", value: "购买城区存量商品住宅" },
+  { label: "购买中心镇新建商品住宅", value: "购买中心镇新建商品住宅" },
 ];
 
 // 不是整村搬迁 -人员情况
@@ -100,27 +100,65 @@ export const personLevel2: Options[] = [
   { label: "权利人", value: "权利人" },
 ];
 
+export const relocationTypeDict: Options[] = [
+  { label: "搬迁奖励—农村集体经济组织成员(非整村)", value: "1" },
+  { label: "搬迁奖励—建档立卡低收入对象(非整村)", value: "2" },
+  { label: "搬迁奖励—权利人(非整村)", value: "3" },
+  { label: "搬迁奖励—一般农户(整村)", value: "4" },
+  { label: "搬迁奖励—低收入农户(整村)", value: "5" },
+  { label: "搬迁奖励—权利人(整村)", value: "6" },
+];
+
 // 编辑类型
 export const editType: Options[] = [
   { label: "新增", value: "1" },
   { label: "编辑", value: "2" },
   { label: "提交", value: "3" },
 ];
-
+// 审核下拉
 export const aduitType: Options[] = [
+  { label: "通过", value: "30" },
+  { label: "驳回", value: "40" },
+];
+export const aduitStatus: Options[] = [
   { label: "待我审", value: "10" },
   { label: "通过", value: "20" },
   { label: "驳回", value: "30" },
 ];
 
-export const approverRole: Options[] = [
+export const auditors: Options[] = [
+  { label: "村审核员", value: 10 },
+  { label: "乡镇审核员", value: 30 },
+  { label: "区县审核员", value: 50 },
+];
+
+export const directors: Options[] = [
+  { label: "村负责人", value: 20 },
+  { label: "乡镇负责人", value: 40 },
+  { label: "区县负责人", value: 60 },
+];
+
+export const townManager: Options[] = [
   { label: "村务员", value: 1 },
   { label: "村审核员", value: 10 },
   { label: "村负责人", value: 20 },
   { label: "乡镇审核员", value: 30 },
+];
+
+export const villageManager: Options[] = [
+  { label: "村务员", value: 1 },
+  { label: "村审核员", value: 10 },
+];
+
+export const areaManager: Options[] = [
   { label: "乡镇负责人", value: 40 },
   { label: "区县审核员", value: 50 },
-  { label: "区县负责人", value: 60 },
+];
+
+export const approverRole: Options[] = [
+  { label: "村务员", value: 1 },
+  ...auditors,
+  ...directors,
 ];
 
 export const directorStatus: Options[] = [

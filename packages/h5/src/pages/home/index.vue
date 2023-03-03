@@ -1,14 +1,14 @@
 <template>
   <div class="home-container">
-    <div class="info-container pass">
+    <div :class="['info-container', stateClass]">
       <pageContainer>
         <div class="title">农户申报详情</div>
         <div class="info-content-container">
           <div class="info-content">
-            <div class="info-content-item">审核状态：审核中</div>
-            <div class="info-content-item">申请编号：3198489191</div>
-            <div class="info-content-item">申请人员：张雨绮</div>
-            <div class="info-content-item">身份证号：339928737464662100</div>
+            <div class="info-content-item">审核状态：{{ stateText }}</div>
+            <div class="info-content-item">申请编号：{{ state.id }}</div>
+            <div class="info-content-item">申请人员：{{ state.name }}</div>
+            <div class="info-content-item">身份证号：{{ state.cardId }}</div>
           </div>
           <div class="info-content-icon"></div>
         </div>
@@ -23,7 +23,7 @@
           <van-config-provider :theme-vars="themeVars">
             <van-steps
               direction="vertical"
-              :active="1"
+              :active="state.processStatus"
               finish-icon="checked"
               inactive-icon="circle"
               active-icon="more"
@@ -49,17 +49,67 @@
 </template>
 <script setup lang="ts">
 import pageContainer from "@/components/pageContainer/index.vue";
+import { onMounted, reactive, computed } from "vue";
+import { getApprovalProcess } from "@/services/home";
 const themeVars = {
   stepIconSize: "18px",
 };
+
+interface State {
+  id: number | string;
+  cardId: number | string;
+  name: string;
+  reason: string;
+  processStatus: number;
+  status: number;
+}
+
+const state: State = reactive({
+  id: "",
+  cardId: "",
+  name: "",
+  reason: "",
+  processStatus: 0,
+  status: 20, // 20审核中 30已通过 40已驳回
+});
+
+onMounted(() => {
+  getApprovalProcess().then((res) => {
+    state.id = res.id;
+    state.cardId = res.idNo;
+    state.name = res.name;
+    state.processStatus = res.processStatus;
+    state.status = res.status;
+  });
+});
+
+const stateText = computed(() => {
+  let text = "审核中";
+  if (state.status === 30) {
+    text = "已通过";
+  } else if (state.status === 40) {
+    text = "已驳回";
+  }
+  return text;
+});
+
+const stateClass = computed(() => {
+  let classText = "verify";
+  if (state.status === 30) {
+    classText = "pass";
+  } else if (state.status === 40) {
+    classText = "back";
+  }
+  return classText;
+});
 </script>
 
 <style lang="scss" scoped>
 @use "@/styles/common";
 .home-container {
   width: 100%;
-  height: 100%;
   @include common.flex(center, center, column);
+
   .info-container {
     width: 100%;
     padding: 16px;
@@ -159,7 +209,7 @@ const themeVars = {
       border: none;
     }
     .van-step--vertical {
-      padding: 6px 10px 50rpx 0;
+      padding: 6px 10px 50px 0;
     }
   }
 }

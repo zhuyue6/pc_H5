@@ -2,7 +2,11 @@
   <div class="director-manage-container">
     <div class="filter-container">
       <div class="button-container">
-        <el-button type="primary" :icon="Plus" @click="addDirector"
+        <el-button
+          type="primary"
+          :icon="Plus"
+          @click="addDirector"
+          v-if="state.hasAddPermission"
           >新增</el-button
         >
       </div>
@@ -43,6 +47,17 @@
             />
           </el-select>
         </div>
+        <div class="option-item">
+          <text class="option-item-text">角色：</text>
+          <el-select v-model="state.filterParams.role" placeholder="全部">
+            <el-option
+              v-for="item in roleList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </div>
         <el-button class="filter-button" type="primary" plain @click="search"
           >搜索</el-button
         >
@@ -59,6 +74,11 @@
             >
               <template #default="{ row }">
                 <textEllipsis
+                  v-if="column.prop === 'areaText'"
+                  :text="util.getUserInfoAreasText(row)"
+                >
+                </textEllipsis>
+                <textEllipsis
                   v-if="column.prop === 'approverRole'"
                   :text="util.roleTextByApproverRole(row.approverRole)"
                 />
@@ -72,7 +92,15 @@
                 />
                 <textEllipsis
                   v-else-if="column.prop === 'status'"
-                  :text="row.status === 0 ? '禁用' : '启动'"
+                  :text="
+                    auditors
+                      .map((auditor) => auditor.value)
+                      .includes(row.approverRole)
+                      ? row.status === 0
+                        ? '禁用'
+                        : '启动'
+                      : '-'
+                  "
                 />
                 <span
                   class="edit"
@@ -81,7 +109,12 @@
                   >编辑</span
                 >
                 <el-switch
-                  v-else-if="column.prop === 'switch'"
+                  v-else-if="
+                    column.prop === 'switch' &&
+                    auditors
+                      .map((auditor) => auditor.value)
+                      .includes(row.approverRole)
+                  "
                   :modelValue="row.status === 1"
                   @update:modelValue="($event: boolean) => enableDirector($event, row)"
                 ></el-switch>
@@ -107,6 +140,13 @@ import { directorStatus, type Options } from "@/shared/dict/constant";
 import { useCommonStore } from "@/store";
 import { isAdmin } from "@/services/permission";
 import { util } from "@/shared";
+import {
+  auditors,
+  townManager,
+  areaManager,
+  villageManager,
+  approverRole,
+} from "@/shared/dict/constant";
 
 interface State {
   filterParams: {
@@ -115,12 +155,15 @@ interface State {
     name: string;
     phone: string;
     status: string;
+    role: string;
   };
+  hasAddPermission: boolean;
 }
 
 const state: State = reactive({
   filterParams: {
     country: [],
+    role: "",
     statusList: [
       {
         label: "全部",
@@ -131,21 +174,49 @@ const state: State = reactive({
     phone: "",
     status: "",
   },
+  hasAddPermission: true,
 });
 
 const commonStore = useCommonStore();
 
 const countryOptions = computed(() => {
   const userIdentity = util.getUserIdentity();
-  let disabled = [1, 2, 3];
+  let disabled = [1, 2];
   if (isAdmin()) {
-    disabled = [1, 2, 3];
+    disabled = [];
   } else if (userIdentity === 4) disabled = [1, 2, 3, 4];
   else if (userIdentity === 5) disabled = [1, 2, 3, 4, 5];
   return util.formatRegion(commonStore.regions, disabled);
 });
 
+const roleList = computed(() => {
+  const userInfo = util.getUserInfo();
+  let list: any[] = [];
+  // 如果是区县负责人
+  if (isAdmin()) {
+    list = approverRole;
+  } else if (userInfo.approverRole === 60) {
+    list = areaManager;
+  } else if (userInfo.approverRole === 40) {
+    list = townManager;
+  } else if (userInfo.approverRole === 20) {
+    list = villageManager;
+  }
+  return [
+    {
+      label: "全部",
+      value: "",
+    },
+  ].concat(list);
+});
+
 async function fetchData(currentPage: number, pageSize: number) {
+  const approverRoles =
+    state.filterParams.role === ""
+      ? roleList.value
+          .filter((item) => item.value !== "")
+          .map((item) => item.value)
+      : [state.filterParams.role];
   const params = {
     currentPage,
     pageSize,
@@ -154,6 +225,7 @@ async function fetchData(currentPage: number, pageSize: number) {
     villageCode: "",
     provinceCode: "",
     cityCode: "",
+    approverRoles,
     status: state.filterParams.status,
     username: state.filterParams.name,
     mobile: state.filterParams.phone,
@@ -193,7 +265,7 @@ const columns = [
     label: "ID",
   },
   {
-    prop: "areaChina",
+    prop: "areaText",
     label: "负责区域",
     width: "100",
   },
@@ -283,6 +355,9 @@ function addDirector() {
 
 onMounted(() => {
   state.filterParams.country = util.getUserInfoDefaultAreas();
+  const userInfo = util.getUserInfo();
+  state.hasAddPermission =
+    [60, 40].includes(userInfo.approverRole) || isAdmin();
   search();
 });
 </script>
@@ -316,6 +391,7 @@ onMounted(() => {
     }
     .option-container {
       @include common.flex(flex-start);
+      flex-wrap: wrap;
       .option-item {
         margin-top: 16px;
         margin-left: 32px;

@@ -7,7 +7,7 @@ export const useCommonStore = defineStore("common", {
   }),
   actions: {
     getRegions() {
-      getRegions().then((res) => {
+      return getRegions().then((res) => {
         this.regions = res as any;
       });
     },
